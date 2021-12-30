@@ -1,0 +1,25 @@
+annotations:
+  category: Website
+apiVersion: v2
+appVersion: 1.8.2
+dependencies:
+  - name: mariadb
+    version: 10.0.3
+    repository: https://charts.bitnami.com/bitnami
+description: Common website on PHP engine, using Nginx and PHP-FPM in single container
+engine: gotpl
+home: https://github.com/murz-helm-charts/website-php
+#icon: https://bitnami.com/assets/stacks/wordpress/img/wordpress-stack-220x234.png
+keywords:
+  - php
+  - website
+  - php-fpm
+  - fpm-nginx
+maintainers:
+  - email: MurzNN@gmail.com
+    name: Alexey Murz Korepov
+name: website-php
+sources:
+  - https://github.com/murz-helm-charts/website-php
+  - https://github.com/Murz-Containers/fpm-nginx
+version: 0.1.0

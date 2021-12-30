@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+  annotations:
+    {{- if .Values.ingress.annotations }}
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    {{- end }}
+spec:
+  tls:
+    - hosts:
+      {{- range .Values.hosts }}
+      - {{ . }}
+      {{- end }}
+      secretName: tls-{{ .Release.Name }}
+
+  rules:
+    {{- $siteName := .Release.Name -}}
+    {{- range .Values.hosts }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $siteName }}
+                port:
+                  number: 80
+    {{- end }}
