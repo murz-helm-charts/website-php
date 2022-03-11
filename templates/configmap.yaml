@@ -6,4 +6,4 @@ metadata:
     app: {{ .Release.Name }}
 data:
   nginx-default.conf: |-
-    {{- .Files.Get "files/nginx-default.conf" | nindent 4 }}
+    {{- tpl (.Files.Get "files/nginx-default.conf.gotmpl") . | nindent 4 }}

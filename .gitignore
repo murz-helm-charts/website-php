@@ -1,2 +1,2 @@
-/charts/mariadb*
-/values-*.yaml
+/charts/*.tgz
+/.Chart.lock

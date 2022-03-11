@@ -1,0 +1,29 @@
+{{/* First Make sure all variables are set and merged properly */}}
+{{- include "common.values.setup" . }}
+
+{{- define "websitePhp.ingressFromHosts" -}}
+enabled: true
+hosts:
+  {{- range .Values.hosts }}
+  - host: {{ . }}
+    paths:
+      - path: /
+        pathType: Prefix
+  {{- end }}
+
+{{- if (.Values.tls).enabled }}
+tls:
+  - hosts:
+    {{- range .Values.hosts }}
+    - {{ . }}
+    {{- end }}
+    secretName: {{ .Release.Name }}-tls
+{{- end }}
+{{- end }}
+
+{{- if .Values.hosts -}}
+{{- $_ := set .Values.ingress "hosts" (include "websitePhp.ingressFromHosts" . | fromYaml) -}}
+{{- end -}}
+
+{{/* Render the templates */}}
+{{ include "common.all" . }}

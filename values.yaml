@@ -1,6 +1,11 @@
-siteName: php-website
+#
+# IMPORTANT NOTE
+#
+# This chart inherits from our common library chart. You can check the default values/options here:
+# https://github.com/k8s-at-home/library-charts/tree/master/charts/stable/common/values.yaml
+#
 
-subDirectory: web
+siteName: php-website
 
 hosts:
   - example.com
@@ -8,8 +13,29 @@ hosts:
   - example2.com
   - subdomain.example.com
 
+subDirectory: web
+
 persistence:
-  size: 2Gi
+  data:
+    enabled: true
+    accessMode: ReadWriteMany
+    mountpath: /data
+    size: 2Gi
+
+service:
+  main:
+    ports:
+      http:
+        port: 80
+
+image:
+  # -- image repository
+  repository: murznn/drupal-fpm-nginx
+  # -- image tag
+  tag: latest
+  # -- image pull policy
+  pullPolicy: IfNotPresent
+
 
 ingress:
   annotations:
@@ -23,7 +49,7 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
 
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
 
 mariadb:
   # image:
