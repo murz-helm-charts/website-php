@@ -1,16 +1,29 @@
 {{/* First Make sure all variables are set and merged properly */}}
 {{- include "common.values.setup" . }}
 
-{{- define "websitePhp.ingressFromHosts" -}}
-enabled: true
-hosts:
-  {{- range .Values.hosts }}
-  - host: {{ . }}
-    paths:
-      - path: /
-        pathType: Prefix
-  {{- end }}
+{{/* Enabling tpl conversions for specific values */}}
+{{- $_ := set .Values.persistence.nginx "name" (print (tpl .Values.persistence.nginx.name .)) -}}
+{{- $_ := set .Values.persistence.php "name" (print (tpl .Values.persistence.php.name .)) -}}
+{{- if .Values.mariadb.enabled }}
+{{- $_ := set .Values.env "DATABASE_HOST" (print (tpl .Values.env.DATABASE_HOST .)) -}}
+{{- $_ := set .Values.env.DATABASE_PASSWORD.valueFrom.secretKeyRef "name" (print (tpl .Values.env.DATABASE_PASSWORD.valueFrom.secretKeyRef.name .)) -}}
+{{- end }}
 
+{{- $_ := set .Values.podAnnotations "checksum/config" (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
+
+{{- define "websitePhp.ingressHosts" -}}
+{{- if .Values.hosts }}
+hosts:
+{{- range .Values.hosts }}
+- host: {{ . }}
+  paths:
+    - path: /
+      pathType: Prefix
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "websitePhp.ingressTls" -}}
 {{- if (.Values.tls).enabled }}
 tls:
   - hosts:
@@ -22,7 +35,8 @@ tls:
 {{- end }}
 
 {{- if .Values.hosts -}}
-{{- $_ := set .Values.ingress "hosts" (include "websitePhp.ingressFromHosts" . | fromYaml) -}}
+{{- $_ := set .Values.ingress.main "hosts" (include "websitePhp.ingressHosts" . | fromYaml).hosts -}}
+{{- $_ := set .Values.ingress.main "tls" (include "websitePhp.ingressTls" . | fromYaml).tls -}}
 {{- end -}}
 
 {{/* Render the templates */}}

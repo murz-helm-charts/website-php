@@ -1,9 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ .Release.Name }}-config
   labels:
     app: {{ .Release.Name }}
 data:
   nginx-default.conf: |-
     {{- tpl (.Files.Get "files/nginx-default.conf.gotmpl") . | nindent 4 }}
+  php.ini: |-
+    {{- if (.Values.php).config }}
+    {{ .Values.php.config | nindent 4 }}
+    {{- end }}
+

@@ -4,7 +4,7 @@ server {
 
   root /var/www/html{{ eq .Values.subDirectory nil | ternary "" (print "/"  .Values.subDirectory) }};
 
-  index index.php;
+  index  index.html index.php;
 
   # redirect server error pages to the static page /50x.html
   #
@@ -14,14 +14,14 @@ server {
   #}
 
   location / {
-    try_files $uri /index.php?$query_string;
+    try_files $uri $uri/ @rewrite;
   }
   location @rewrite {
+    # rewrite ^/(.*)$ /index.php?$query_string;
     rewrite ^/(.*)$ /index.php?q=$1;
   }
 
   location ~ \.php$ {
-
     fastcgi_buffer_size 32k;
     fastcgi_buffers 4 32k;
     fastcgi_split_path_info ^(.+\.php)(/.+)$;
@@ -32,6 +32,7 @@ server {
     fastcgi_param PATH_INFO $fastcgi_path_info;
     fastcgi_read_timeout 600;
   }
+
   location ~ /\.ht {
     deny all;
   }

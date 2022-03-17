@@ -3,7 +3,7 @@ name: website-php
 description: Common website on PHP engine, using Nginx and PHP-FPM in single container
 
 type: application
-version: 0.2.0
+version: 0.2.1
 appVersion: "latest"
 
 annotations:
@@ -14,7 +14,12 @@ dependencies:
   repository: https://library-charts.k8s-at-home.com
   version: 4.3.0
 - name: mariadb
+  condition: mariadb.enabled
   version: 10.0.3
+  repository: https://charts.bitnami.com/bitnami
+- name: phpmyadmin
+  condition: phpmyadmin.enabled
+  version: 9.0.9
   repository: https://charts.bitnami.com/bitnami
 
 home: https://github.com/murz-helm-charts/website-php
