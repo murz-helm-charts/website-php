@@ -1,43 +1,55 @@
 {{/* First Make sure all variables are set and merged properly */}}
-{{- include "common.values.setup" . }}
+{{- include "bjw-s.common.loader.init" . }}
 
-{{/* Enabling tpl conversions for specific values */}}
-{{- $_ := set .Values.persistence.nginx "name" (print (tpl .Values.persistence.nginx.name .)) -}}
-{{- $_ := set .Values.persistence.php "name" (print (tpl .Values.persistence.php.name .)) -}}
-{{- if .Values.mariadb.enabled }}
-{{- $_ := set .Values.env "DATABASE_HOST" (print (tpl .Values.env.DATABASE_HOST .)) -}}
-{{- $_ := set .Values.env.DATABASE_PASSWORD.valueFrom.secretKeyRef "name" (print (tpl .Values.env.DATABASE_PASSWORD.valueFrom.secretKeyRef.name .)) -}}
+# Configuring env variables start.
+{{- if .Values.env }}
+  {{- $valuesMerged := .Values.env | merge (.Values.controllers.main.containers.main.env | default dict) }}
+  {{- $_ := set .Values.controllers.main.containers.main "env" $valuesMerged }}
+  # Unsetting a variable to not affect other templates.
+  {{- $_ := set .Values "env" dict -}}
 {{- end }}
+# Configuring env variables end.
 
-{{- $_ := set .Values.podAnnotations "checksum/config" (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
-
+# Configuring hosts start.
 {{- define "websitePhp.ingressHosts" -}}
-{{- if .Values.hosts }}
-hosts:
-{{- range .Values.hosts }}
-- host: {{ . }}
-  paths:
-    - path: /
-      pathType: Prefix
-{{- end }}
-{{- end }}
-{{- end }}
-
-{{- define "websitePhp.ingressTls" -}}
-{{- if (.Values.tls).enabled }}
-tls:
-  - hosts:
+# We can't use if outside of define.
+  {{- if .Values.hosts }}
+  hosts:
     {{- range .Values.hosts }}
-    - {{ . }}
+    - host: {{ . }}
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: main
+            port: http
     {{- end }}
-    secretName: {{ .Release.Name }}-tls
-{{- end }}
+  {{- end }}
+{{- end -}}
+{{- if include "websitePhp.ingressHosts" . | default "" }}
+  {{- $_ := set .Values.ingress.main "hosts" (include "websitePhp.ingressHosts" . | fromYaml).hosts -}}
+{{- end -}}
+# Configuring hosts end.
+
+# Configuring tls start.
+{{- define "websitePhp.ingressTls" -}}
+  {{- if (.Values.tls).enabled }}
+  tls:
+    - hosts:
+      {{- range .Values.hosts }}
+      - {{ . }}
+      {{- end }}
+      secretName: {{ .Release.Name }}-tls
+  {{- end }}
 {{- end }}
 
-{{- if .Values.hosts -}}
-{{- $_ := set .Values.ingress.main "hosts" (include "websitePhp.ingressHosts" . | fromYaml).hosts -}}
-{{- $_ := set .Values.ingress.main "tls" (include "websitePhp.ingressTls" . | fromYaml).tls -}}
-{{- end -}}
+{{- if (.Values.tls).enabled }}
+  {{- $_ := set .Values.ingress.main "tls" (include "websitePhp.ingressTls" . | fromYaml).tls -}}
+{{- end }}
+# Configuring tls end.
+
+# @todo Move to pod annotations to restart pod
+{{- $_ := set .Values.controllers.main.annotations "checksum/config" (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 
 {{/* Render the templates */}}
-{{ include "common.all" . }}
+{{ include "bjw-s.common.loader.generate" . }}
