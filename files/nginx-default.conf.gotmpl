@@ -1,8 +1,12 @@
+{{ $websiteDirectory := "/website" -}}
+{{- if .Values.subDirectory -}}
+  {{- $websiteDirectory = printf "%s/%s" $websiteDirectory .Values.subDirectory -}}
+{{- end -}}
 server {
   listen 80;
   server_name localhost;
 
-  root /var/www/html{{ eq .Values.subDirectory nil | ternary "" (print "/"  .Values.subDirectory) }};
+  root {{ $websiteDirectory }};
 
   index  index.html index.php;
 
@@ -28,7 +32,7 @@ server {
     fastcgi_pass 127.0.0.1:9000;
     fastcgi_index index.php;
     include fastcgi_params;
-    fastcgi_param SCRIPT_FILENAME /var/www/html{{ eq .Values.subDirectory nil | ternary "" (print "/"  .Values.subDirectory) }}$fastcgi_script_name;
+    fastcgi_param SCRIPT_FILENAME {{ $websiteDirectory }}$fastcgi_script_name;
     fastcgi_param PATH_INFO $fastcgi_path_info;
     fastcgi_read_timeout 600;
   }
